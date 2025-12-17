@@ -75,16 +75,19 @@ public class AuthService {
         List<Category> categories = new ArrayList<>();
         
         for (String name : categoryNames) {
-            Category category = new Category();
-            category.setName(name);
-            category.setIsDefault(true);
+            Category category = categoryRepository.findByName(name)
+                    .orElseGet(() -> {
+                        Category newCategory = new Category();
+                        newCategory.setName(name);
+                        newCategory.setIsDefault(true);
+                        return categoryRepository.save(newCategory);
+                    });
             categories.add(category);
         }
         
-        List<Category> savedCategories = categoryRepository.saveAll(categories);
-        log.info("Created {} default categories", savedCategories.size());
+        log.info("Created {} default categories", categories.size());
         
-        return savedCategories;
+        return categories;
     }
     
     private void createSampleRecipe(Long userId, Category dessertCategory) {
