@@ -1,8 +1,10 @@
 package com.recipenotebook.service;
 
+import com.recipenotebook.dto.LoginResponseDTO;
 import com.recipenotebook.dto.RegisterRequest;
 import com.recipenotebook.dto.RegisterResponse;
 import com.recipenotebook.entity.*;
+import com.recipenotebook.exception.AuthenticationException;
 import com.recipenotebook.exception.RegistrationException;
 import com.recipenotebook.exception.UsernameAlreadyExistsException;
 import com.recipenotebook.repository.CategoryRepository;
@@ -15,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +30,7 @@ public class AuthService {
     private final CategoryRepository categoryRepository;
     private final RecipeRepository recipeRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
     
     @Transactional
     public RegisterResponse registerUser(RegisterRequest request) {
@@ -145,5 +149,27 @@ public class AuthService {
             step.setInstruction(instructions[i]);
             recipe.addStep(step);
         }
+    }
+    
+    public LoginResponseDTO login(String username, String password) {
+        log.info("Login attempt for username: {}", username);
+        
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    log.warn("Login attempt with non-existent username: {}", username);
+                    return new AuthenticationException("Invalid credentials");
+                });
+        
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            log.warn("Login attempt with invalid password for username: {}", username);
+            throw new AuthenticationException("Invalid credentials");
+        }
+        
+        String token = jwtService.generateToken(user.getId(), user.getUsername());
+        String expiresAtFormatted = DateTimeFormatter.ISO_INSTANT.format(jwtService.getExpirationTime());
+        
+        log.info("User logged in successfully: {}", username);
+        
+        return new LoginResponseDTO(token, user.getUsername(), expiresAtFormatted);
     }
 }

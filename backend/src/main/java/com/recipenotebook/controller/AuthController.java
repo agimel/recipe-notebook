@@ -1,6 +1,8 @@
 package com.recipenotebook.controller;
 
 import com.recipenotebook.dto.ApiResponse;
+import com.recipenotebook.dto.LoginRequestDTO;
+import com.recipenotebook.dto.LoginResponseDTO;
 import com.recipenotebook.dto.RegisterRequest;
 import com.recipenotebook.dto.RegisterResponse;
 import com.recipenotebook.service.AuthService;
@@ -29,5 +31,19 @@ public class AuthController {
         
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("User registered successfully", response));
+    }
+    
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponseDTO>> login(
+            @Valid @RequestBody LoginRequestDTO request) {
+        
+        log.debug("Received login request for username: {}", request.getUsername());
+        
+        LoginResponseDTO loginResponse = authService.login(
+                request.getUsername(), 
+                request.getPassword()
+        );
+        
+        return ResponseEntity.ok(ApiResponse.success("Login successful", loginResponse));
     }
 }

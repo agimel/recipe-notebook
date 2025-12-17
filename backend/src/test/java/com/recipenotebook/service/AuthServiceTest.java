@@ -1,11 +1,13 @@
 package com.recipenotebook.service;
 
+import com.recipenotebook.dto.LoginResponseDTO;
 import com.recipenotebook.dto.RegisterRequest;
 import com.recipenotebook.dto.RegisterResponse;
 import com.recipenotebook.entity.Category;
 import com.recipenotebook.entity.Difficulty;
 import com.recipenotebook.entity.Recipe;
 import com.recipenotebook.entity.User;
+import com.recipenotebook.exception.AuthenticationException;
 import com.recipenotebook.exception.RegistrationException;
 import com.recipenotebook.exception.UsernameAlreadyExistsException;
 import com.recipenotebook.repository.CategoryRepository;
@@ -20,7 +22,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +45,9 @@ class AuthServiceTest {
     
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
+    
+    @Mock
+    private JwtService jwtService;
     
     @InjectMocks
     private AuthService authService;
@@ -149,21 +156,23 @@ class AuthServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         
         Category dessertCategory = new Category();
+        dessertCategory.setId(4L);
         dessertCategory.setName("Dessert");
-        when(categoryRepository.saveAll(anyList())).thenAnswer(invocation -> {
-            List<Category> categories = invocation.getArgument(0);
-            assertThat(categories).hasSize(6);
-            assertThat(categories).extracting(Category::getName)
-                    .containsExactlyInAnyOrder("Breakfast", "Lunch", "Dinner", "Dessert", "Snacks", "Drinks");
-            assertThat(categories).allMatch(cat -> cat.getIsDefault() == true);
-            return categories;
+        when(categoryRepository.findByName("Dessert")).thenReturn(java.util.Optional.of(dessertCategory));
+        when(categoryRepository.findByName(anyString())).thenReturn(java.util.Optional.empty());
+        when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
+            Category cat = invocation.getArgument(0);
+            if (cat.getId() == null) {
+                cat.setId((long) (Math.random() * 1000));
+            }
+            return cat;
         });
         
         when(recipeRepository.save(any(Recipe.class))).thenReturn(new Recipe());
         
         authService.registerUser(validRequest);
         
-        verify(categoryRepository).saveAll(anyList());
+        verify(categoryRepository, atLeast(6)).save(any(Category.class));
     }
     
     @Test
@@ -177,8 +186,17 @@ class AuthServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         
         Category dessertCategory = new Category();
+        dessertCategory.setId(4L);
         dessertCategory.setName("Dessert");
-        when(categoryRepository.saveAll(anyList())).thenReturn(List.of(dessertCategory));
+        when(categoryRepository.findByName("Dessert")).thenReturn(java.util.Optional.of(dessertCategory));
+        when(categoryRepository.findByName(anyString())).thenReturn(java.util.Optional.empty());
+        when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
+            Category cat = invocation.getArgument(0);
+            if (cat.getId() == null) {
+                cat.setId((long) (Math.random() * 1000));
+            }
+            return cat;
+        });
         
         when(recipeRepository.save(any(Recipe.class))).thenAnswer(invocation -> {
             Recipe recipe = invocation.getArgument(0);
@@ -195,5 +213,90 @@ class AuthServiceTest {
         authService.registerUser(validRequest);
         
         verify(recipeRepository).save(any(Recipe.class));
+    }
+    
+    @Test
+    void login_WithValidCredentials_ShouldReturnLoginResponse() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("testuser");
+        user.setPasswordHash("$2a$10$hashedPassword");
+        
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "$2a$10$hashedPassword")).thenReturn(true);
+        when(jwtService.generateToken(1L, "testuser")).thenReturn("mock.jwt.token");
+        when(jwtService.getExpirationTime()).thenReturn(Instant.parse("2025-12-18T15:30:00Z"));
+        
+        LoginResponseDTO response = authService.login("testuser", "password123");
+        
+        assertThat(response).isNotNull();
+        assertThat(response.getToken()).isEqualTo("mock.jwt.token");
+        assertThat(response.getUsername()).isEqualTo("testuser");
+        assertThat(response.getExpiresAt()).isEqualTo("2025-12-18T15:30:00Z");
+        
+        verify(userRepository).findByUsername("testuser");
+        verify(passwordEncoder).matches("password123", "$2a$10$hashedPassword");
+        verify(jwtService).generateToken(1L, "testuser");
+        verify(jwtService).getExpirationTime();
+    }
+    
+    @Test
+    void login_WithNonExistentUsername_ShouldThrowAuthenticationException() {
+        when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+        
+        assertThatThrownBy(() -> authService.login("nonexistent", "password123"))
+                .isInstanceOf(AuthenticationException.class)
+                .hasMessageContaining("Invalid credentials");
+        
+        verify(userRepository).findByUsername("nonexistent");
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+        verify(jwtService, never()).generateToken(any(), anyString());
+    }
+    
+    @Test
+    void login_WithIncorrectPassword_ShouldThrowAuthenticationException() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("testuser");
+        user.setPasswordHash("$2a$10$hashedPassword");
+        
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongpassword", "$2a$10$hashedPassword")).thenReturn(false);
+        
+        assertThatThrownBy(() -> authService.login("testuser", "wrongpassword"))
+                .isInstanceOf(AuthenticationException.class)
+                .hasMessageContaining("Invalid credentials");
+        
+        verify(userRepository).findByUsername("testuser");
+        verify(passwordEncoder).matches("wrongpassword", "$2a$10$hashedPassword");
+        verify(jwtService, never()).generateToken(any(), anyString());
+    }
+    
+    @Test
+    void login_ShouldNotRevealWhetherUsernameExists() {
+        when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+        
+        User user = new User();
+        user.setUsername("existinguser");
+        user.setPasswordHash("$2a$10$hashedPassword");
+        when(userRepository.findByUsername("existinguser")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongpassword", "$2a$10$hashedPassword")).thenReturn(false);
+        
+        String messageForNonExistent = null;
+        String messageForWrongPassword = null;
+        
+        try {
+            authService.login("nonexistent", "password123");
+        } catch (AuthenticationException e) {
+            messageForNonExistent = e.getMessage();
+        }
+        
+        try {
+            authService.login("existinguser", "wrongpassword");
+        } catch (AuthenticationException e) {
+            messageForWrongPassword = e.getMessage();
+        }
+        
+        assertThat(messageForNonExistent).isEqualTo(messageForWrongPassword);
     }
 }

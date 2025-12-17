@@ -50,6 +50,15 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("An unexpected error occurred during registration", null));
     }
     
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(
+            AuthenticationException ex) {
+        
+        log.warn("Authentication failed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("Invalid username or password", null));
+    }
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         
