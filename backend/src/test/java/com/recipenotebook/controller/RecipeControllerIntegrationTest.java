@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -266,5 +267,76 @@ class RecipeControllerIntegrationTest {
         request.setSteps(steps);
         
         return request;
+    }
+    
+    @Test
+    void getRecipeById_WithValidRecipe_ReturnsOk() throws Exception {
+        Long recipeId = createTestRecipe(1L);
+        
+        mockMvc.perform(get("/api/v1/recipes/" + recipeId)
+                .header("X-User-Id", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.message").value("Recipe retrieved successfully"))
+                .andExpect(jsonPath("$.data.id").value(recipeId))
+                .andExpect(jsonPath("$.data.title").value("Classic Chocolate Chip Cookies"))
+                .andExpect(jsonPath("$.data.difficulty").value("EASY"))
+                .andExpect(jsonPath("$.data.cookingTimeMinutes").value(25))
+                .andExpect(jsonPath("$.data.ingredients").isArray())
+                .andExpect(jsonPath("$.data.ingredients.length()").value(2))
+                .andExpect(jsonPath("$.data.steps").isArray())
+                .andExpect(jsonPath("$.data.steps.length()").value(3))
+                .andExpect(jsonPath("$.data.categories").isArray())
+                .andExpect(jsonPath("$.data.categories.length()").value(2))
+                .andExpect(jsonPath("$.data.createdAt").exists())
+                .andExpect(jsonPath("$.data.updatedAt").exists());
+    }
+    
+    @Test
+    void getRecipeById_VerifiesIngredientsSortedByOrder() throws Exception {
+        Long recipeId = createTestRecipe(1L);
+        
+        mockMvc.perform(get("/api/v1/recipes/" + recipeId)
+                .header("X-User-Id", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.ingredients[0].sortOrder").value(1))
+                .andExpect(jsonPath("$.data.ingredients[0].name").value("all-purpose flour"))
+                .andExpect(jsonPath("$.data.ingredients[0].quantity").value("2"))
+                .andExpect(jsonPath("$.data.ingredients[0].unit").value("cups"))
+                .andExpect(jsonPath("$.data.ingredients[1].sortOrder").value(2))
+                .andExpect(jsonPath("$.data.ingredients[1].name").value("chocolate chips"));
+    }
+    
+    @Test
+    void getRecipeById_VerifiesStepsSortedByStepNumber() throws Exception {
+        Long recipeId = createTestRecipe(1L);
+        
+        mockMvc.perform(get("/api/v1/recipes/" + recipeId)
+                .header("X-User-Id", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.steps[0].stepNumber").value(1))
+                .andExpect(jsonPath("$.data.steps[0].instruction").value("Preheat oven to 375°F and line baking sheets with parchment paper."))
+                .andExpect(jsonPath("$.data.steps[1].stepNumber").value(2))
+                .andExpect(jsonPath("$.data.steps[2].stepNumber").value(3));
+    }
+    
+    @Test
+    void getRecipeById_WithNonExistentRecipe_ReturnsNotFound() throws Exception {
+        mockMvc.perform(get("/api/v1/recipes/99999")
+                .header("X-User-Id", 1L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("error"))
+                .andExpect(jsonPath("$.message").value("Recipe not found"));
+    }
+    
+    @Test
+    void getRecipeById_WithDifferentUserId_ReturnsNotFound() throws Exception {
+        Long recipeId = createTestRecipe(1L);
+        
+        mockMvc.perform(get("/api/v1/recipes/" + recipeId)
+                .header("X-User-Id", 999L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("error"))
+                .andExpect(jsonPath("$.message").value("Recipe not found"));
     }
 }

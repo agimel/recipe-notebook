@@ -33,6 +33,18 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Validation failed", errorResponse));
     }
     
+    @ExceptionHandler(QueryParameterValidationException.class)
+    public ResponseEntity<ApiResponse<ErrorDetails>> handleQueryParameterValidation(
+            QueryParameterValidationException ex) {
+        
+        ErrorDetails errorDetails = new ErrorDetails(ex.getErrors());
+        
+        log.warn("Query parameter validation failed: {}", ex.getErrors());
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Invalid query parameter", errorDetails));
+    }
+    
     @ExceptionHandler(CategoryNotFoundException.class)
     public ResponseEntity<ApiResponse<ErrorDetails>> handleCategoryNotFoundException(
             CategoryNotFoundException ex) {

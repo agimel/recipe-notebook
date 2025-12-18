@@ -2,10 +2,9 @@ package com.recipenotebook.service;
 
 import com.recipenotebook.dto.CreateRecipeRequest;
 import com.recipenotebook.dto.IngredientRequest;
+import com.recipenotebook.dto.RecipeDetailDTO;
 import com.recipenotebook.dto.StepRequest;
-import com.recipenotebook.entity.Category;
-import com.recipenotebook.entity.Difficulty;
-import com.recipenotebook.entity.Recipe;
+import com.recipenotebook.entity.*;
 import com.recipenotebook.exception.CategoryNotFoundException;
 import com.recipenotebook.exception.RecipeNotFoundException;
 import com.recipenotebook.repository.CategoryRepository;
@@ -18,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -439,6 +439,142 @@ class RecipeServiceTest {
         recipe.setTitle("Old Title");
         recipe.setDifficulty(Difficulty.EASY);
         recipe.setCookingTimeMinutes(15);
+        return recipe;
+    }
+    
+    @Test
+    void getRecipeById_WithValidRecipeAndUser_ReturnsRecipeDetailDTO() {
+        Long recipeId = 1L;
+        Long userId = 123L;
+        Recipe recipe = createRecipeWithAssociations(recipeId, userId);
+        
+        when(recipeRepository.findByIdAndUserId(recipeId, userId)).thenReturn(Optional.of(recipe));
+        
+        RecipeDetailDTO result = recipeService.getRecipeById(recipeId, userId);
+        
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(recipeId);
+        assertThat(result.getTitle()).isEqualTo("Test Recipe");
+        assertThat(result.getDifficulty()).isEqualTo("MEDIUM");
+        assertThat(result.getCookingTimeMinutes()).isEqualTo(30);
+        assertThat(result.getCreatedAt()).isNotNull();
+        assertThat(result.getUpdatedAt()).isNotNull();
+        
+        verify(recipeRepository).findByIdAndUserId(recipeId, userId);
+    }
+    
+    @Test
+    void getRecipeById_ReturnsIngredientsSortedByOrder() {
+        Long recipeId = 1L;
+        Long userId = 123L;
+        Recipe recipe = createRecipeWithAssociations(recipeId, userId);
+        
+        when(recipeRepository.findByIdAndUserId(recipeId, userId)).thenReturn(Optional.of(recipe));
+        
+        RecipeDetailDTO result = recipeService.getRecipeById(recipeId, userId);
+        
+        assertThat(result.getIngredients()).hasSize(3);
+        assertThat(result.getIngredients().get(0).getName()).isEqualTo("flour");
+        assertThat(result.getIngredients().get(0).getSortOrder()).isEqualTo(1);
+        assertThat(result.getIngredients().get(0).getQuantity()).isEqualTo("2");
+        assertThat(result.getIngredients().get(0).getUnit()).isEqualTo("cups");
+        
+        assertThat(result.getIngredients().get(1).getName()).isEqualTo("sugar");
+        assertThat(result.getIngredients().get(1).getSortOrder()).isEqualTo(2);
+        
+        assertThat(result.getIngredients().get(2).getName()).isEqualTo("salt");
+        assertThat(result.getIngredients().get(2).getSortOrder()).isEqualTo(3);
+    }
+    
+    @Test
+    void getRecipeById_ReturnsStepsSortedByStepNumber() {
+        Long recipeId = 1L;
+        Long userId = 123L;
+        Recipe recipe = createRecipeWithAssociations(recipeId, userId);
+        
+        when(recipeRepository.findByIdAndUserId(recipeId, userId)).thenReturn(Optional.of(recipe));
+        
+        RecipeDetailDTO result = recipeService.getRecipeById(recipeId, userId);
+        
+        assertThat(result.getSteps()).hasSize(3);
+        assertThat(result.getSteps().get(0).getStepNumber()).isEqualTo(1);
+        assertThat(result.getSteps().get(0).getInstruction()).isEqualTo("Mix dry ingredients");
+        
+        assertThat(result.getSteps().get(1).getStepNumber()).isEqualTo(2);
+        assertThat(result.getSteps().get(1).getInstruction()).isEqualTo("Add wet ingredients");
+        
+        assertThat(result.getSteps().get(2).getStepNumber()).isEqualTo(3);
+        assertThat(result.getSteps().get(2).getInstruction()).isEqualTo("Bake at 350°F");
+    }
+    
+    @Test
+    void getRecipeById_ReturnsCategories() {
+        Long recipeId = 1L;
+        Long userId = 123L;
+        Recipe recipe = createRecipeWithAssociations(recipeId, userId);
+        
+        when(recipeRepository.findByIdAndUserId(recipeId, userId)).thenReturn(Optional.of(recipe));
+        
+        RecipeDetailDTO result = recipeService.getRecipeById(recipeId, userId);
+        
+        assertThat(result.getCategories()).hasSize(2);
+        assertThat(result.getCategories().get(0).getName()).isEqualTo("Dessert");
+        assertThat(result.getCategories().get(1).getName()).isEqualTo("Quick & Easy");
+    }
+    
+    @Test
+    void getRecipeById_WithNonExistentRecipe_ThrowsRecipeNotFoundException() {
+        Long recipeId = 999L;
+        Long userId = 123L;
+        
+        when(recipeRepository.findByIdAndUserId(recipeId, userId)).thenReturn(Optional.empty());
+        
+        assertThatThrownBy(() -> recipeService.getRecipeById(recipeId, userId))
+            .isInstanceOf(RecipeNotFoundException.class)
+            .hasMessage("Recipe not found");
+        
+        verify(recipeRepository).findByIdAndUserId(recipeId, userId);
+    }
+    
+    @Test
+    void getRecipeById_WithDifferentUserId_ThrowsRecipeNotFoundException() {
+        Long recipeId = 1L;
+        Long userId = 123L;
+        Long differentUserId = 456L;
+        
+        when(recipeRepository.findByIdAndUserId(recipeId, differentUserId)).thenReturn(Optional.empty());
+        
+        assertThatThrownBy(() -> recipeService.getRecipeById(recipeId, differentUserId))
+            .isInstanceOf(RecipeNotFoundException.class)
+            .hasMessage("Recipe not found");
+        
+        verify(recipeRepository).findByIdAndUserId(recipeId, differentUserId);
+    }
+    
+    private Recipe createRecipeWithAssociations(Long recipeId, Long userId) {
+        Recipe recipe = new Recipe();
+        recipe.setId(recipeId);
+        recipe.setUserId(userId);
+        recipe.setTitle("Test Recipe");
+        recipe.setDifficulty(Difficulty.MEDIUM);
+        recipe.setCookingTimeMinutes(30);
+        recipe.setCreatedAt(LocalDateTime.now());
+        recipe.setUpdatedAt(LocalDateTime.now());
+        
+        Ingredient ing1 = new Ingredient(1L, recipe, "2", "cups", "flour", 1);
+        Ingredient ing2 = new Ingredient(2L, recipe, "1", "cup", "sugar", 2);
+        Ingredient ing3 = new Ingredient(3L, recipe, "1/2", "tsp", "salt", 3);
+        recipe.getIngredients().addAll(Arrays.asList(ing1, ing2, ing3));
+        
+        Step step1 = new Step(1L, recipe, 1, "Mix dry ingredients");
+        Step step2 = new Step(2L, recipe, 2, "Add wet ingredients");
+        Step step3 = new Step(3L, recipe, 3, "Bake at 350°F");
+        recipe.getSteps().addAll(Arrays.asList(step1, step2, step3));
+        
+        Category cat1 = new Category(1L, "Dessert", false);
+        Category cat2 = new Category(2L, "Quick & Easy", false);
+        recipe.getCategories().addAll(Arrays.asList(cat1, cat2));
+        
         return recipe;
     }
 }
