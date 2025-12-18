@@ -1,7 +1,7 @@
 ---
 agent: 'agent'
 model: claude-sonnet-4.5
-tools: ['edit/createFile', 'edit/editFiles', 'search']
+tools: ['execute/getTerminalOutput', 'execute/runInTerminal', 'read/readFile', 'edit/createFile', 'edit/editFiles', 'search']
 description: 'REST API endpoint implementation'
 ---
 

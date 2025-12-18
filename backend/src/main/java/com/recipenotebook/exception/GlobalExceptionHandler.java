@@ -1,6 +1,7 @@
 package com.recipenotebook.exception;
 
 import com.recipenotebook.dto.ApiResponse;
+import com.recipenotebook.dto.ErrorDetails;
 import com.recipenotebook.dto.ValidationErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,30 @@ public class GlobalExceptionHandler {
         ValidationErrorResponse errorResponse = new ValidationErrorResponse(errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Validation failed", errorResponse));
+    }
+    
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ApiResponse<ErrorDetails>> handleCategoryNotFoundException(
+            CategoryNotFoundException ex) {
+        
+        Map<String, String> errors = new HashMap<>();
+        errors.put("categoryIds", ex.getMessage());
+        
+        ErrorDetails errorDetails = new ErrorDetails(errors);
+        
+        log.warn("Category validation failed: {}", ex.getMessage());
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Invalid category ID", errorDetails));
+    }
+    
+    @ExceptionHandler(RecipeNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRecipeNotFoundException(
+            RecipeNotFoundException ex) {
+        
+        log.warn("Recipe not found: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Recipe not found", null));
     }
     
     @ExceptionHandler(UsernameAlreadyExistsException.class)
