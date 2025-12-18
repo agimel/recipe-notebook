@@ -1,0 +1,16 @@
+.cooking-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary, #666);
+  font-size: 0.95rem;
+}
+
+.cooking-time-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.cooking-time-text {
+  font-weight: 500;
+}

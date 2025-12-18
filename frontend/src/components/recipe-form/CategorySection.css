@@ -1,0 +1,92 @@
+.category-section {
+  margin-bottom: 2rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.section-header .required {
+  color: #dc3545;
+}
+
+.count-indicator {
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.count-indicator.valid {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.count-indicator.invalid {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.category-chip {
+  padding: 0.5rem 1rem;
+  border: 2px solid #007bff;
+  background-color: white;
+  color: #007bff;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.category-chip:hover {
+  background-color: #e7f3ff;
+}
+
+.category-chip.selected {
+  background-color: #007bff;
+  color: white;
+}
+
+.category-chip.selected:hover {
+  background-color: #0056b3;
+}
+
+.loading-skeleton {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.error-message {
+  display: block;
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

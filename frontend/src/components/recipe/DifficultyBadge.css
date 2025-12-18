@@ -1,0 +1,19 @@
+.difficulty-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.difficulty-badge--small {
+  padding: 2px 8px;
+  font-size: 0.75rem;
+}
+
+.difficulty-badge--medium {
+  padding: 4px 12px;
+  font-size: 0.875rem;
+}

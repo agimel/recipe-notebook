@@ -1,0 +1,22 @@
+.ingredients-section {
+  margin-bottom: 2.5rem;
+}
+
+.section-heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--primary-color, #4CAF50);
+}
+
+@media (max-width: 768px) {
+  .ingredients-section {
+    margin-bottom: 2rem;
+  }
+  
+  .section-heading {
+    font-size: 1.25rem;
+  }
+}

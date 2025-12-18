@@ -1,0 +1,34 @@
+.category-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.category-more-btn,
+.category-less-btn {
+  padding: 4px 10px;
+  background-color: #f5f5f5;
+  color: #666;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.category-more-btn:hover,
+.category-less-btn:hover {
+  background-color: #e0e0e0;
+}

@@ -1,0 +1,48 @@
+.steps-list {
+  padding-left: 2.5rem;
+  margin: 0;
+  list-style-position: outside !important;
+  list-style-type: decimal !important;
+}
+
+.step-item {
+  padding: 1rem 0;
+  padding-left: 0.5rem;
+  border-bottom: 1px solid var(--border-light, #e0e0e0);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+  display: list-item !important;
+}
+
+.step-item::marker {
+  font-weight: 700;
+  color: var(--primary-color, #4CAF50);
+  font-size: 1.125rem;
+}
+
+.step-item:last-child {
+  border-bottom: none;
+}
+
+.empty-message {
+  color: var(--text-secondary, #666);
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .step-item {
+    font-size: 1.125rem;
+    line-height: 1.75;
+    padding: 1.25rem 0;
+    padding-left: 0.5rem;
+  }
+  
+  .steps-list {
+    padding-left: 2rem;
+  }
+  
+  .step-item::marker {
+    font-size: 1.25rem;
+  }
+}
