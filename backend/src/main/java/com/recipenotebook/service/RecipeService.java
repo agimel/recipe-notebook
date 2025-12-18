@@ -117,6 +117,21 @@ public class RecipeService {
         return updatedRecipe.getId();
     }
     
+    @Transactional
+    public void deleteRecipe(Long recipeId, Long userId) {
+        log.debug("Attempting to delete recipe {} for user {}", recipeId, userId);
+        
+        Recipe recipe = recipeRepository.findByIdAndUserId(recipeId, userId)
+                .orElseThrow(() -> {
+                    log.warn("Recipe {} not found or does not belong to user {}", recipeId, userId);
+                    return new RecipeNotFoundException("Recipe not found");
+                });
+        
+        recipeRepository.delete(recipe);
+        
+        log.info("Successfully deleted recipe {} for user {}", recipeId, userId);
+    }
+    
     @Transactional(readOnly = true)
     public RecipeDetailDTO getRecipeById(Long recipeId, Long userId) {
         log.info("Retrieving recipe {} for user {}", recipeId, userId);

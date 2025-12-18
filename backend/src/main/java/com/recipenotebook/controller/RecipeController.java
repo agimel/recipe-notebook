@@ -70,6 +70,18 @@ public class RecipeController {
         return ResponseEntity.ok(ApiResponse.success("Recipe retrieved successfully", recipe));
     }
     
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteRecipe(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long userId) {
+        
+        log.debug("Received delete request for recipe {} from user: {}", id, userId);
+        
+        recipeService.deleteRecipe(id, userId);
+        
+        return ResponseEntity.ok(ApiResponse.success("Recipe deleted successfully", null));
+    }
+    
     @GetMapping
     public ResponseEntity<ApiResponse<RecipeListResponseData>> getRecipes(
             @RequestParam(defaultValue = "0") int page,

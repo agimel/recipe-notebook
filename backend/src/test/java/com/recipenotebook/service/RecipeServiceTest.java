@@ -551,6 +551,53 @@ class RecipeServiceTest {
         verify(recipeRepository).findByIdAndUserId(recipeId, differentUserId);
     }
     
+    @Test
+    void deleteRecipe_Success() {
+        Long recipeId = 1L;
+        Long userId = 100L;
+        Recipe recipe = new Recipe();
+        recipe.setId(recipeId);
+        recipe.setUserId(userId);
+        
+        when(recipeRepository.findByIdAndUserId(recipeId, userId))
+                .thenReturn(Optional.of(recipe));
+        
+        recipeService.deleteRecipe(recipeId, userId);
+        
+        verify(recipeRepository).delete(any(Recipe.class));
+    }
+    
+    @Test
+    void deleteRecipe_RecipeNotFound() {
+        Long recipeId = 1L;
+        Long userId = 100L;
+        
+        when(recipeRepository.findByIdAndUserId(recipeId, userId))
+                .thenReturn(Optional.empty());
+        
+        assertThatThrownBy(() -> recipeService.deleteRecipe(recipeId, userId))
+                .isInstanceOf(RecipeNotFoundException.class)
+                .hasMessage("Recipe not found");
+        
+        verify(recipeRepository, never()).delete(any(Recipe.class));
+    }
+    
+    @Test
+    void deleteRecipe_WrongUser() {
+        Long recipeId = 1L;
+        Long requestingUserId = 100L;
+        Long actualOwnerId = 200L;
+        
+        when(recipeRepository.findByIdAndUserId(recipeId, requestingUserId))
+                .thenReturn(Optional.empty());
+        
+        assertThatThrownBy(() -> recipeService.deleteRecipe(recipeId, requestingUserId))
+                .isInstanceOf(RecipeNotFoundException.class)
+                .hasMessage("Recipe not found");
+        
+        verify(recipeRepository, never()).delete(any(Recipe.class));
+    }
+    
     private Recipe createRecipeWithAssociations(Long recipeId, Long userId) {
         Recipe recipe = new Recipe();
         recipe.setId(recipeId);
