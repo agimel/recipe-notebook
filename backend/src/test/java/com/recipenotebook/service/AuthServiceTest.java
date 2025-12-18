@@ -71,10 +71,14 @@ class AuthServiceTest {
         savedUser.setUsername("testuser");
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         
-        Category dessertCategory = new Category();
-        dessertCategory.setId(4L);
-        dessertCategory.setName("Dessert");
-        when(categoryRepository.saveAll(anyList())).thenReturn(List.of(dessertCategory));
+        when(categoryRepository.findByName(anyString())).thenReturn(java.util.Optional.empty());
+        when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
+            Category cat = invocation.getArgument(0);
+            if (cat.getId() == null) {
+                cat.setId((long) (Math.random() * 1000));
+            }
+            return cat;
+        });
         
         Recipe savedRecipe = new Recipe();
         savedRecipe.setId(1L);
@@ -89,7 +93,6 @@ class AuthServiceTest {
         verify(userRepository).existsByUsername("testuser");
         verify(passwordEncoder).encode("password123");
         verify(userRepository).save(any(User.class));
-        verify(categoryRepository).saveAll(anyList());
         verify(recipeRepository).save(any(Recipe.class));
     }
     
@@ -134,10 +137,14 @@ class AuthServiceTest {
             return savedUser;
         });
         
-        Category dessertCategory = new Category();
-        dessertCategory.setId(4L);
-        dessertCategory.setName("Dessert");
-        when(categoryRepository.saveAll(anyList())).thenReturn(List.of(dessertCategory));
+        when(categoryRepository.findByName(anyString())).thenReturn(java.util.Optional.empty());
+        when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
+            Category cat = invocation.getArgument(0);
+            if (cat.getId() == null) {
+                cat.setId((long) (Math.random() * 1000));
+            }
+            return cat;
+        });
         when(recipeRepository.save(any(Recipe.class))).thenReturn(new Recipe());
         
         authService.registerUser(validRequest);
@@ -155,10 +162,6 @@ class AuthServiceTest {
         savedUser.setUsername("testuser");
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         
-        Category dessertCategory = new Category();
-        dessertCategory.setId(4L);
-        dessertCategory.setName("Dessert");
-        when(categoryRepository.findByName("Dessert")).thenReturn(java.util.Optional.of(dessertCategory));
         when(categoryRepository.findByName(anyString())).thenReturn(java.util.Optional.empty());
         when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
             Category cat = invocation.getArgument(0);
@@ -172,7 +175,7 @@ class AuthServiceTest {
         
         authService.registerUser(validRequest);
         
-        verify(categoryRepository, atLeast(6)).save(any(Category.class));
+        verify(categoryRepository, times(6)).save(any(Category.class));
     }
     
     @Test
@@ -185,10 +188,6 @@ class AuthServiceTest {
         savedUser.setUsername("testuser");
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         
-        Category dessertCategory = new Category();
-        dessertCategory.setId(4L);
-        dessertCategory.setName("Dessert");
-        when(categoryRepository.findByName("Dessert")).thenReturn(java.util.Optional.of(dessertCategory));
         when(categoryRepository.findByName(anyString())).thenReturn(java.util.Optional.empty());
         when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
             Category cat = invocation.getArgument(0);
