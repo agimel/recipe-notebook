@@ -1,0 +1,11 @@
+.recipe-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .recipe-content {
+    padding: 1rem;
+  }
+}

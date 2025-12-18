@@ -1,0 +1,41 @@
+.difficulty-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.difficulty-filter__label {
+  font-weight: 600;
+  color: #212121;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.difficulty-filter__options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.difficulty-filter__option {
+  padding: 8px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  background: white;
+  color: #666;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.difficulty-filter__option:hover {
+  border-color: #bdbdbd;
+}
+
+.difficulty-filter__option--selected {
+  font-weight: 600;
+  background: rgba(25, 118, 210, 0.05);
+}
