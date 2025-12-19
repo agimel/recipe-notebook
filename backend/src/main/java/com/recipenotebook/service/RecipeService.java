@@ -7,6 +7,7 @@ import com.recipenotebook.exception.RecipeNotFoundException;
 import com.recipenotebook.repository.CategoryRepository;
 import com.recipenotebook.repository.RecipeRepository;
 import com.recipenotebook.repository.RecipeSpecification;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class RecipeService {
     
     private final RecipeRepository recipeRepository;
+    private final EntityManager entityManager;
     private final CategoryRepository categoryRepository;
     
     @Transactional
@@ -85,6 +87,8 @@ public class RecipeService {
         recipe.getIngredients().clear();
         recipe.getSteps().clear();
         recipe.getCategories().clear();
+        
+        entityManager.flush();
         
         recipe.setTitle(request.getTitle());
         recipe.setDifficulty(Difficulty.valueOf(request.getDifficulty()));

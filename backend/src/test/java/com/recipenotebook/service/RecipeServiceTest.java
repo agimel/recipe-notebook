@@ -9,6 +9,7 @@ import com.recipenotebook.exception.CategoryNotFoundException;
 import com.recipenotebook.exception.RecipeNotFoundException;
 import com.recipenotebook.repository.CategoryRepository;
 import com.recipenotebook.repository.RecipeRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,9 @@ class RecipeServiceTest {
     
     @Mock
     private CategoryRepository categoryRepository;
+    
+    @Mock
+    private EntityManager entityManager;
     
     @InjectMocks
     private RecipeService recipeService;
