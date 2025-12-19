@@ -1,5 +1,5 @@
 ---
-applyTo: "frontend/**/*.js"
+applyTo: "frontend/**/*.js, frontend/**/*.jsx, frontend/**/*.ts, frontend/**/*.tsx"
 ---
 ### Guidelines for REACT
 
