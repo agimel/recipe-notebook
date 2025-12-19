@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLogin } from '../hooks/useLogin';
 import LoginForm from '../components/LoginForm';
@@ -8,13 +8,10 @@ import './LoginView.css';
 export default function LoginView() {
   const { isAuthenticated } = useAuth();
   const { login, isLoading } = useLogin();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/recipes', { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
+  if (isAuthenticated) {
+    return <Navigate to="/recipes" replace />;
+  }
 
   const handleLogin = async (credentials) => {
     await login(credentials);

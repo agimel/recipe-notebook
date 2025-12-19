@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { authApi } from '../services/api';
 import { useAuth } from './useAuth';
@@ -7,8 +6,6 @@ import { useAuth } from './useAuth';
 export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const { login: setAuthData } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const login = async (credentials) => {
     setIsLoading(true);
@@ -22,9 +19,6 @@ export function useLogin() {
         setAuthData(token, username, expiresAt);
         
         toast.success('Login successful!');
-        
-        const from = location.state?.from?.pathname || '/recipes';
-        navigate(from, { replace: true });
         
         return { success: true };
       } else {

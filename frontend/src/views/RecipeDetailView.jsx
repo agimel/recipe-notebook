@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { recipesApi } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 import { VIEW_STATES } from '../types/recipe';
 import LoadingSkeleton from '../components/recipe/LoadingSkeleton';
 import ErrorDisplay from '../components/recipe/ErrorDisplay';
@@ -11,6 +12,7 @@ import './RecipeDetailView.css';
 function RecipeDetailView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const titleRef = useRef(null);
   
   const [recipe, setRecipe] = useState(null);
@@ -23,6 +25,7 @@ function RecipeDetailView() {
     const userId = sessionStorage.getItem('userId');
     
     if (!userId) {
+      logout();
       toast.error('Please log in to view recipes');
       navigate('/login');
       return;
@@ -48,7 +51,7 @@ function RecipeDetailView() {
       if (error.response?.status === 404) {
         setViewState(VIEW_STATES.NOT_FOUND);
       } else if (error.response?.status === 401) {
-        sessionStorage.removeItem('userId');
+        logout();
         toast.error('Session expired. Please log in again.');
         navigate(`/login?returnTo=/recipes/${id}`);
       } else {

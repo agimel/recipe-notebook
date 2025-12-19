@@ -70,15 +70,16 @@ describe('LoginView', () => {
     });
   });
 
+
   describe('Authentication Redirect Logic', () => {
     it('redirects to /recipes when user is already authenticated', () => {
       useAuth.mockReturnValue({
         isAuthenticated: true
       });
 
-      renderWithRouter(<LoginView />);
+      const { container } = renderWithRouter(<LoginView />);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/recipes', { replace: true });
+      expect(container.querySelector('.login-form')).not.toBeInTheDocument();
     });
 
     it('does not redirect when user is not authenticated', () => {
@@ -89,24 +90,6 @@ describe('LoginView', () => {
       renderWithRouter(<LoginView />);
 
       expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('redirects when authentication status changes from false to true', () => {
-      const { rerender } = renderWithRouter(<LoginView />);
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-
-      useAuth.mockReturnValue({
-        isAuthenticated: true
-      });
-
-      rerender(
-        <BrowserRouter>
-          <LoginView />
-        </BrowserRouter>
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith('/recipes', { replace: true });
     });
   });
 

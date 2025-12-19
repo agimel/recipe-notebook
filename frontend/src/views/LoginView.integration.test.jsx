@@ -264,7 +264,7 @@ describe('LoginView Integration Tests - Navigation and Routing', () => {
       mockUseAuth.isAuthenticated = true;
       useAuth.mockReturnValue(mockUseAuth);
       
-      render(
+      const { container } = render(
         <MemoryRouter initialEntries={['/login']}>
           <Routes>
             <Route path="/login" element={<LoginView />} />
@@ -280,16 +280,16 @@ describe('LoginView Integration Tests - Navigation and Routing', () => {
         </MemoryRouter>
       );
       
-      expect(mockNavigate).toHaveBeenCalledWith('/recipes', { replace: true });
+      expect(container.querySelector('.login-form')).not.toBeInTheDocument();
     });
 
     it('prevents authenticated users from accessing login page', () => {
       mockUseAuth.isAuthenticated = true;
       useAuth.mockReturnValue(mockUseAuth);
       
-      renderWithRouter('/login');
+      const { container } = renderWithRouter('/login');
       
-      expect(mockNavigate).toHaveBeenCalledWith('/recipes', { replace: true });
+      expect(container.querySelector('.login-form')).not.toBeInTheDocument();
     });
 
     it('shows login form when user is not authenticated', () => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useAuth } from '../hooks/useAuth';
 import { useRecipeForm } from '../hooks/useRecipeForm';
 import { useNavigationBlocker } from '../hooks/useNavigationBlocker';
 import { categoriesApi, recipesApi } from '../services/api';
@@ -15,6 +16,7 @@ import './RecipeEditView.css';
 const RecipeEditView = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { logout } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [recipe, setRecipe] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -54,6 +56,7 @@ const RecipeEditView = () => {
         const userId = sessionStorage.getItem('userId');
         
         if (!userId) {
+          logout();
           toast.error('Session expired. Please log in again.');
           navigate('/login');
           return;
@@ -99,6 +102,7 @@ const RecipeEditView = () => {
         if (error.response?.status === 404) {
           setRecipeNotFound(true);
         } else if (error.response?.status === 401) {
+          logout();
           toast.error('Session expired. Please log in again.');
           navigate('/login');
         } else {
@@ -202,6 +206,7 @@ const RecipeEditView = () => {
       
       const userId = sessionStorage.getItem('userId');
       if (!userId) {
+        logout();
         toast.error('Session expired. Please log in again.');
         navigate('/login');
         return;
@@ -241,6 +246,7 @@ const RecipeEditView = () => {
         toast.error('Recipe not found');
         navigate('/recipes');
       } else if (error.response?.status === 401) {
+        logout();
         toast.error('Session expired. Please log in again.');
         navigate('/login');
       } else {
