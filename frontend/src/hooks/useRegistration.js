@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { authApi, recipesApi } from '../services/api';
+import { authApi } from '../services/api';
 
 export function useRegistration(setError) {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,25 +16,8 @@ export function useRegistration(setError) {
       const response = await authApi.register(data);
       
       if (response.data.status === 'success') {
-        const userId = response.data.data.userId;
-        sessionStorage.setItem('userId', userId.toString());
-        localStorage.setItem('username', response.data.data.username);
-        
-        toast.success('Welcome! Here\'s a sample recipe to get started. Try creating your own!');
-        
-        try {
-          const recipesResponse = await recipesApi.getRecipes();
-          const sampleRecipe = recipesResponse.data.data.recipes[0];
-          
-          if (sampleRecipe) {
-            navigate(`/recipes/${sampleRecipe.id}`);
-          } else {
-            navigate('/recipes');
-          }
-        } catch (recipeError) {
-          console.error('Failed to fetch sample recipe:', recipeError);
-          navigate('/recipes');
-        }
+        toast.success('Registration successful! Please log in to continue.');
+        navigate('/login');
       }
     } catch (err) {
       if (err.response?.status === 400) {
